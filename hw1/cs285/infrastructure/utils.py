@@ -21,6 +21,9 @@ def sample_trajectory(env, policy, max_path_length, render=False):
     # initialize env for the beginning of a new rollout
     ob = env.reset()  # TODO: initial observation after resetting the env
 
+    if isinstance(ob, tuple):
+        ob = ob[0]
+
     # init vars
     obs, acs, rewards, next_obs, terminals, image_obs = [], [], [], [], [], []
     steps = 0
@@ -40,8 +43,12 @@ def sample_trajectory(env, policy, max_path_length, render=False):
         ac = ac[0]
 
         # TODO: take that action and get reward and next ob
-        next_ob, rew, done, _ = env.step(ac)
-        
+        step = env.step(ac)
+        next_ob, rew, done = step[:3]
+
+        if isinstance(next_ob, tuple):
+            next_ob = next_ob[0]
+
         # TODO rollout can end due to done, or due to max_path_length
         steps += 1
         rollout_done = env.terminated or steps == max_path_length  # HINT: this is either 0 or 1
