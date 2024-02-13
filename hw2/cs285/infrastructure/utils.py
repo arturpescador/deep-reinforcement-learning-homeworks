@@ -1,6 +1,5 @@
 from collections import OrderedDict
 import numpy as np
-import copy
 from cs285.networks.policies import MLPPolicy
 import gym
 import cv2
@@ -9,7 +8,6 @@ from typing import Dict, Tuple, List
 
 ############################################
 ############################################
-
 
 def sample_trajectory(
     env: gym.Env, policy: MLPPolicy, max_length: int, render: bool = False
@@ -30,14 +28,14 @@ def sample_trajectory(
             )
 
         # TODO use the most recent ob and the policy to decide what to do
-        ac: np.ndarray = None
+        ac = policy.forward(ptu.from_numpy(ob)).sample()
 
         # TODO: use that action to take a step in the environment
-        next_ob, rew, done, _ = None, None, None, None
+        next_ob, rew, done, _ = env.step(ptu.to_numpy(ac))
 
         # TODO rollout can end due to done, or due to max_length
         steps += 1
-        rollout_done: bool = None
+        rollout_done = (done or steps==max_length)
 
         # record result of taking that action
         obs.append(ob)
@@ -60,7 +58,6 @@ def sample_trajectory(
         "next_observation": np.array(next_obs, dtype=np.float32),
         "terminal": np.array(terminals, dtype=np.float32),
     }
-
 
 def sample_trajectories(
     env: gym.Env,
@@ -93,7 +90,6 @@ def sample_n_trajectories(
         trajs.append(traj)
     return trajs
 
-
 def compute_metrics(trajs, eval_trajs):
     """Compute metrics for logging."""
 
@@ -121,7 +117,6 @@ def compute_metrics(trajs, eval_trajs):
 
     return logs
 
-
 def convert_listofrollouts(trajs):
     """
     Take a list of rollout dictionaries and return separate arrays, where each array is a concatenation of that array
@@ -141,7 +136,6 @@ def convert_listofrollouts(trajs):
         concatenated_rewards,
         unconcatenated_rewards,
     )
-
 
 def get_traj_length(traj):
     return len(traj["reward"])
